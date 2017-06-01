@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>icons/ic_add_black_24dp_2x.png</file>
+        <file>icons/ic_bug_report_black_24dp_1x.png</file>
+        <file>icons/ic_edit_black_24dp_2x.png</file>
+        <file>icons/ic_help_outline_black_24dp_1x.png</file>
+        <file>icons/ic_redo_black_24dp_1x.png</file>
+        <file>icons/ic_remove_circle_outline_black_24dp_2x.png</file>
+        <file>icons/ic_sort_black_24dp_1x.png</file>
+        <file>icons/ic_undo_black_24dp_1x.png</file>
+        <file>icons/ic_update_black_24dp_1x.png</file>
+    </qresource>
+</RCC>
