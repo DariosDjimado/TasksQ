@@ -1,6 +1,6 @@
 #ifndef TASK_H
 #define TASK_H
-
+#include "tasktype.h"
 #include <QObject>
 #include <QString>
 #include <QDate>
@@ -9,7 +9,7 @@ class Task : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QStrig name READ name WRITE setName NOTIFY nameChanged)
+    Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
 
     Q_PROPERTY(QDate startDate READ startDate WRITE setStartDate NOTIFY startDateChanged)
     Q_PROPERTY(QDate endDate READ endDate WRITE setEndDate NOTIFY endDateChanged)
@@ -36,14 +36,14 @@ public:
     QTime endTime() const;
     void setEndTime(const QTime &endTime);
 
-    int type() const;
-    void setType(int type);
-
     QString comment() const;
     void setComment(const QString &comment);
 
     bool saved() const;
     void setSaved(bool saved);
+
+    TaskType *type() const;
+    void setType(TaskType *type);
 
 signals:
     void nameChanged();
@@ -64,10 +64,10 @@ private:
     QTime m_startTime;
     QTime m_endTime;
 
-    int m_type;
+    TaskType *m_type;
 
     QString m_comment;
-
+    // used to flag saved task
     bool m_saved;
 
 

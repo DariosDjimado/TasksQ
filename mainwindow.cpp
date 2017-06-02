@@ -1,25 +1,71 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "reset.h"
 #include <QPushButton>
 #include <QPropertyAnimation>
-
-#include <iostream>
-using namespace std;
 
 #include <QFile>
 #include <QTextStream>
 
 
-MainWindow::MainWindow(TaskListController * controller,QWidget *parent) :
+#include <iostream>
+using namespace std;
+
+
+
+MainWindow::MainWindow(TaskListController * controller, TaskTypeListController *typeController, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_controller(controller)
+    m_controller(controller),
+    m_typeController(typeController)
 {
     Q_ASSERT(controller!=nullptr);
+    Q_ASSERT(typeController!=nullptr);
     ui->setupUi(this);
 
+    // must be changed to execute only on first run or on reset
+    // reset or first run
+
+    QFile config("CONFIG.TASKSQ");
+    if(!config.exists()){
+        if(!config.open(QFile::WriteOnly | QFile::Text)){
+            // TODO handle error
+
+        }else{
+            QTextStream out(&config);
+            out<<"reset:false"<<endl;
+            config.flush();
+            config.close();
+            Reset * newReset=new Reset();
+            newReset->doReset();
+        }
+
+
+    }
+    else{
+        if(!config.open(QFile::ReadOnly | QFile::Text)){
+        // TODO handle error
+        }else{
+            QTextStream in(&config);
+            auto reset=in.readLine().split(":");
+            if(reset[1]=="true"){
+                config.flush();
+                config.close();
+                Reset * newReset=new Reset();
+                newReset->doReset();
+            }
+        }
+    }
+
+
+
+    // initialize the session
     init();
+
+    //
     setupConfig();
+
+    // make connections
     setupConnections();
 
 }
@@ -37,7 +83,7 @@ void MainWindow::createTask()
         ui->tableWidget->insertRow(ui->tableWidget->rowCount());
         auto rowCount=ui->tableWidget->rowCount()-1;
 
-        displayTask(rowCount,task);
+        displayTask(true,rowCount,task);
     }
 }
 
@@ -54,7 +100,7 @@ void MainWindow::deleteTask()
 
 
                 //*******
-                m_controller->saveData();
+                m_controller->saveTasks();
             }
         }
     }
@@ -70,13 +116,16 @@ void MainWindow::editTask()
             ui->stackedWidget->setCurrentWidget(ui->editPage);
             ui->menuTasks->setEnabled(false);
 
+            // name
             ui->editPageNameInput->setText(task->name());
-
+            // dates
             ui->editPageStartDateInput->setDate(task->startDate());
             ui->editPageEndDateInput->setDate(task->endDate());
-
+            // times
             ui->editPageStartTimeInput->setTime(task->startTime());
             ui->editPageEndTimeInput->setTime(task->endTime());
+            // type
+            ui->editPageTypeInput->setCurrentIndex(m_typeMap.value(task->type()));
         }
     }
 }
@@ -96,19 +145,15 @@ void MainWindow::saveTask()
                 task->setStartTime(ui->editPageStartTimeInput->time());
                 task->setEndTime(ui->editPageEndTimeInput->time());
 
+                task->setType(m_typeController->getTaskTypeByName(ui->editPageTypeInput->currentText()));
+
+
                 task->setSaved(true);
 
-                ui->tableWidget->setItem(row,NAME,new QTableWidgetItem(task->name()));
-                ui->tableWidget->setItem(row,START_DATE, new QTableWidgetItem(task->startDate().toString("dd.MM.yyyy")));
-                ui->tableWidget->setItem(row,START_TIME, new QTableWidgetItem(task->startTime().toString("hh.mm.ss")));
-                ui->tableWidget->setItem(row,END_DATE, new QTableWidgetItem(task->endDate().toString("dd.MM.yyyy")));
-                ui->tableWidget->setItem(row,END_TIME, new QTableWidgetItem(task->endTime().toString("hh.mm.ss")));
-                ui->tableWidget->setItem(row,TYPE,new QTableWidgetItem(QString::number(task->type())));
-                ui->tableWidget->setItem(row,COMMENT,new QTableWidgetItem(task->comment()));
-
+                displayTask(false,row,task);
 
                 //********
-                 m_controller->saveData();
+                 m_controller->saveTasks();
 
 
                 discardTask();
@@ -162,27 +207,50 @@ void MainWindow::setupConfig()
 
 void MainWindow::init()
 {
-    m_controller->loadData();
+    // Load the Types
+    m_typeController->loadTaskTypes();
+
+    // Load the Tasks
+    m_controller->loadTasks();
+
+    // display the Tasks;
     for(int i=0;i<m_controller->getSize();i++){
 
         auto task=m_controller->getTask(i);
         ui->tableWidget->insertRow(ui->tableWidget->rowCount());
         auto rowCount=ui->tableWidget->rowCount()-1;
 
-        displayTask(rowCount,task);
+        displayTask(true,rowCount,task);
     }
 
+    // Types combo box
+    for(int i=0;i<m_typeController->getSize();i++){
+        auto type=m_typeController->getTaskTypeByPosition(i);
+        ui->editPageTypeInput->addItem(type->name());
+        m_typeMap.insert(type,i);
+    }
 }
 
-void MainWindow::displayTask(int row, Task *task)
+void MainWindow::displayTask(bool isNew, int row, Task *task)
 {
+
     ui->tableWidget->setItem(row,NAME,new QTableWidgetItem(task->name()));
     ui->tableWidget->setItem(row,START_DATE, new QTableWidgetItem(task->startDate().toString("dd.MM.yyyy")));
     ui->tableWidget->setItem(row,START_TIME, new QTableWidgetItem(task->startTime().toString("hh.mm.ss")));
     ui->tableWidget->setItem(row,END_DATE, new QTableWidgetItem(task->endDate().toString("dd.MM.yyyy")));
     ui->tableWidget->setItem(row,END_TIME, new QTableWidgetItem(task->endTime().toString("hh.mm.ss")));
-    ui->tableWidget->setItem(row,TYPE,new QTableWidgetItem(QString::number(task->type())));
+    ui->tableWidget->setItem(row,TYPE,new QTableWidgetItem(task->type()->name()));
     ui->tableWidget->setItem(row,COMMENT,new QTableWidgetItem(task->comment()));
 
-    m_taskMap.insert(row,task);
+    for(int i=0; i<ui->tableWidget->columnCount();i++){
+        ui->tableWidget->item(row,i)->setBackgroundColor(QColor(task->type()->backgroundColor()));
+        ui->tableWidget->item(row,i)->setTextColor(QColor(task->type()->textColor()));
+
+    }
+
+    if(isNew){
+        m_taskMap.insert(row,task);
+    }
+
+
 }

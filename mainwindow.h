@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "taskListController.h"
+#include "tasktypelistcontroller.h"
 
 #include <QMainWindow>
 #include <QHash>
@@ -17,7 +18,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(TaskListController * controller, QWidget *parent = 0);
+    explicit MainWindow(TaskListController * controller,TaskTypeListController * taskController, QWidget *parent = 0);
     ~MainWindow();
 
 public slots:
@@ -34,10 +35,11 @@ private:
     Ui::MainWindow *ui;
 
     TaskListController * m_controller;
-
+    TaskTypeListController * m_typeController;
 
 
     QHash<int, Task *> m_taskMap;
+    QHash<TaskType *,int> m_typeMap;
 
 
     enum {
@@ -50,7 +52,7 @@ private:
     void setupConfig();
     void init();
 
-    void displayTask(int row, Task * task);
+    void displayTask(bool isNew,int row, Task * task);
 };
 
 #endif // MAINWINDOW_H

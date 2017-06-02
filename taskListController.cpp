@@ -2,15 +2,14 @@
 #include <QFile>
 #include <QTextStream>
 
-#include <iostream>
-using namespace std;
-
 TaskListController::TaskListController(
-        TaskList *taskList, QObject *parent) :
+        TaskList *taskList,TaskTypeList * taskTypeList, QObject *parent) :
     QObject(parent),
-  m_taskList(taskList)
+    m_taskList(taskList),
+    m_taskTypeList(taskTypeList)
 {
     Q_ASSERT(taskList!=nullptr);
+    Q_ASSERT(taskTypeList!=nullptr);
 }
 
 Task *TaskListController::createTask()
@@ -22,7 +21,7 @@ Task *TaskListController::createTask()
         task->setEndDate(QDate().currentDate());
         task->setStartTime(QTime().currentTime());
         task->setEndTime(QTime().currentTime());
-        task->setType(0);
+        task->setType(m_taskTypeList->getDefaultTaskType());
         task->setComment(tr("No comment..."));
         task->setSaved(false);
     }
@@ -39,9 +38,9 @@ QList<Task *> TaskListController::selectByStartDate(QDate startDate)
     return m_taskList->selectTasksByStartDate(startDate);
 }
 
-bool TaskListController::saveData()
+bool TaskListController::saveTasks()
 {
-    QFile db("DATA.TASKQ");
+    QFile db("DATA.TASKSQ");
     if(!db.open(QFile::WriteOnly | QFile::Text)){
         logs(QDate().currentDate().toString("dd.MM.yyyy")+": cannot save data");
         return false;
@@ -56,7 +55,7 @@ bool TaskListController::saveData()
                 out << currentaTask->startTime().toString("hh.mm.ss")<<"|";
                 out <<currentaTask->endDate().toString("dd.MM.yyyy")<<"|";
                 out <<currentaTask->endTime().toString("hh.mm.ss")<<"|";
-                out <<currentaTask->type()<<"|";
+                out <<currentaTask->type()->name()<<"|";
                 out<<currentaTask->comment()<<endl;
             }
         }
@@ -67,9 +66,9 @@ bool TaskListController::saveData()
 
 }
 
-bool TaskListController::loadData()
+bool TaskListController::loadTasks()
 {
-    QFile db("DATA.TASKQ");
+    QFile db("DATA.TASKSQ");
 
     if(!db.open(QFile::ReadOnly | QFile::Text)){
         logs(QDate().currentDate().toString("dd.MM.yyyy")+": cannot load data");
@@ -82,13 +81,19 @@ bool TaskListController::loadData()
 
             auto loadedTask=m_taskList->createTask();
 
+            // name
             loadedTask->setName(listLine[0]);
+            // dates
             loadedTask->setStartDate(QDate::fromString(listLine[1],"dd.MM.yyyy"));
-            loadedTask->setStartTime(QTime::fromString(listLine[2],"hh.mm.ss"));
             loadedTask->setEndDate(QDate::fromString(listLine[3],"dd.MM.yyyy"));
+            //times
+            loadedTask->setStartTime(QTime::fromString(listLine[2],"hh.mm.ss"));
             loadedTask->setEndTime(QTime::fromString(listLine[4],"hh.mm.ss"));
-            loadedTask->setType(listLine[5].toInt());
+            // type
+            loadedTask->setType(m_taskTypeList->getTaskTypeByName(listLine[5]));
+            // comment
             loadedTask->setComment(listLine[6]);
+            // flag as recorded (saved)
             loadedTask->setSaved(true);
 
 

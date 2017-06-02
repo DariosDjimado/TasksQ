@@ -75,16 +75,6 @@ void Task::setEndTime(const QTime &endTime)
     }
 }
 
-int Task::type() const
-{
-    return m_type;
-}
-
-void Task::setType(int type)
-{
-    m_type = type;
-}
-
 QString Task::comment() const
 {
     return m_comment;
@@ -104,3 +94,14 @@ void Task::setSaved(bool saved)
 {
     m_saved = saved;
 }
+
+TaskType *Task::type() const
+{
+    return m_type;
+}
+
+void Task::setType(TaskType *type)
+{
+    m_type = type;
+}
+

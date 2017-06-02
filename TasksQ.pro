@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = taskmaster
+TARGET = tasksq
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -28,13 +28,21 @@ SOURCES += \
         mainwindow.cpp \
     task.cpp \
     tasklist.cpp \
-    taskListController.cpp
+    taskListController.cpp \
+    tasktype.cpp \
+    tasktypelist.cpp \
+    tasktypelistcontroller.cpp \
+    reset.cpp
 
 HEADERS += \
         mainwindow.h \
     task.h \
     tasklist.h \
-    taskListController.h
+    taskListController.h \
+    tasktype.h \
+    tasktypelist.h \
+    tasktypelistcontroller.h \
+    reset.h
 
 FORMS += \
         mainwindow.ui
