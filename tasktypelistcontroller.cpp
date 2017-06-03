@@ -1,6 +1,9 @@
 #include "tasktypelistcontroller.h"
 #include <QFile>
 #include <QTextStream>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 TaskTypeListController::TaskTypeListController(TaskTypeList *taskTypeList,
                                                QObject *parent) :
@@ -10,30 +13,43 @@ TaskTypeListController::TaskTypeListController(TaskTypeList *taskTypeList,
 
 }
 
-void TaskTypeListController::loadTaskTypes()
+bool TaskTypeListController::loadTaskTypes()
 {
-    QFile types("TYPES.TASKSQ");
-    if(!types.open(QFile::ReadOnly | QFile::Text)){
 
-    }else{
+    QFile typesFile("types.json");
+    if(!typesFile.open(QIODevice::ReadOnly)){
+        // TODO openning error
+        return false;
+    }
 
-        QTextStream in(&types);
-        while(!in.atEnd()){
-            auto typeValues=in.readLine().split("|");
-            auto taskType=new TaskType;
-            taskType->setName(typeValues[0]);
-            taskType->setTextColor(typeValues[1]);
-            taskType->setBackgroundColor(typeValues[2]);
-            m_taskTypeList->addTaskType(taskType);
+
+    QByteArray data=typesFile.readAll();
+    QJsonDocument loadTypes(QJsonDocument::fromJson(data));
+    QJsonArray typesObject=loadTypes.array();
+
+    for(QJsonArray::Iterator it=typesObject.begin(); it!=typesObject.end();it++){
+        QJsonObject type=it->toObject();
+
+        // create taskType
+        auto taskType=new TaskType;
+
+
+        QString name=type.take("name").toString();
+        taskType->setName(name);
+        taskType->setTextColor(type.take("text_color").toString());
+        taskType->setBackgroundColor(type.take("background_color").toString());
+
+        if(name=="default"){
+            m_taskTypeList->setDefaultTaskType(taskType);
         }
 
-        types.flush();
-        types.close();
+        m_taskTypeList->addTaskType(taskType);
     }
+    return true;
 }
 
 
-void TaskTypeListController::saveTaskTypes()
+bool TaskTypeListController::saveTaskTypes()
 {
     QFile types("TYPES.TASKQ");
     if(!types.open(QFile::WriteOnly | QFile::Text)){
@@ -48,6 +64,8 @@ void TaskTypeListController::saveTaskTypes()
         types.flush();
         types.close();
     }
+
+    return true;
 }
 
 TaskType *TaskTypeListController::getTaskTypeByPosition(int position)

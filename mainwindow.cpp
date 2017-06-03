@@ -4,7 +4,9 @@
 #include <QPushButton>
 #include <QPropertyAnimation>
 
-#include <QFile>
+
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTextStream>
 
 
@@ -23,41 +25,10 @@ MainWindow::MainWindow(TaskListController * controller, TaskTypeListController *
     Q_ASSERT(typeController!=nullptr);
     ui->setupUi(this);
 
-    // must be changed to execute only on first run or on reset
-    // reset or first run
-
-    QFile config("CONFIG.TASKSQ");
-    if(!config.exists()){
-        if(!config.open(QFile::WriteOnly | QFile::Text)){
-            // TODO handle error
-
-        }else{
-            QTextStream out(&config);
-            out<<"reset:false"<<endl;
-            config.flush();
-            config.close();
-            Reset * newReset=new Reset();
-            newReset->doReset();
-        }
-
-
+    if(config()){
+        qWarning("okok");
     }
-    else{
-        if(!config.open(QFile::ReadOnly | QFile::Text)){
-        // TODO handle error
-        }else{
-            QTextStream in(&config);
-            auto reset=in.readLine().split(":");
-            if(reset[1]=="true"){
-                config.flush();
-                config.close();
-                Reset * newReset=new Reset();
-                newReset->doReset();
-            }
-        }
-    }
-
-
+        ;
 
     // initialize the session
     init();
@@ -234,13 +205,13 @@ void MainWindow::init()
 void MainWindow::displayTask(bool isNew, int row, Task *task)
 {
 
-    ui->tableWidget->setItem(row,NAME,new QTableWidgetItem(task->name()));
-    ui->tableWidget->setItem(row,START_DATE, new QTableWidgetItem(task->startDate().toString("dd.MM.yyyy")));
-    ui->tableWidget->setItem(row,START_TIME, new QTableWidgetItem(task->startTime().toString("hh.mm.ss")));
-    ui->tableWidget->setItem(row,END_DATE, new QTableWidgetItem(task->endDate().toString("dd.MM.yyyy")));
-    ui->tableWidget->setItem(row,END_TIME, new QTableWidgetItem(task->endTime().toString("hh.mm.ss")));
-    ui->tableWidget->setItem(row,TYPE,new QTableWidgetItem(task->type()->name()));
-    ui->tableWidget->setItem(row,COMMENT,new QTableWidgetItem(task->comment()));
+    ui->tableWidget->setItem(row,Task::NAME,new QTableWidgetItem(task->name()));
+    ui->tableWidget->setItem(row,Task::START_DATE, new QTableWidgetItem(task->startDate().toString("dd.MM.yyyy")));
+    ui->tableWidget->setItem(row,Task::START_TIME, new QTableWidgetItem(task->startTime().toString("hh.mm.ss")));
+    ui->tableWidget->setItem(row,Task::END_DATE, new QTableWidgetItem(task->endDate().toString("dd.MM.yyyy")));
+    ui->tableWidget->setItem(row,Task::END_TIME, new QTableWidgetItem(task->endTime().toString("hh.mm.ss")));
+    ui->tableWidget->setItem(row,Task::TYPE,new QTableWidgetItem(task->type()->name()));
+    ui->tableWidget->setItem(row,Task::COMMENT,new QTableWidgetItem(task->comment()));
 
     for(int i=0; i<ui->tableWidget->columnCount();i++){
         ui->tableWidget->item(row,i)->setBackgroundColor(QColor(task->type()->backgroundColor()));
@@ -253,4 +224,41 @@ void MainWindow::displayTask(bool isNew, int row, Task *task)
     }
 
 
+}
+
+bool MainWindow::config()
+{
+    QFile configFile("config.json");
+
+    if(!configFile.exists()){ // if the file doesn't exist, it means fresh install
+        if(!configFile.open(QIODevice::WriteOnly)){
+            // TODO handle openning error
+            return false;
+        }
+        QJsonObject configObject
+        {
+            {"app_name", "tasksQ"},
+            {"app_version","alpha"},
+            {"reset_on_start","false"}
+        };
+        configFile.write(QJsonDocument(configObject).toJson());
+        return Reset::doReset();
+
+    }
+
+
+    if(!configFile.open(QIODevice::ReadOnly)){
+        // TODO handle openning error
+        return false;
+    }
+
+    QByteArray config=configFile.readAll();
+    QJsonDocument configDoc(QJsonDocument::fromJson(config));
+    QJsonObject configObject(configDoc.object());
+
+    if(configObject.take("reset_on_start").toString()=="true"){
+        return Reset::doReset();
+    }
+
+    return true;
 }

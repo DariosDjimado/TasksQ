@@ -42,9 +42,7 @@ private:
     QHash<TaskType *,int> m_typeMap;
 
 
-    enum {
-        NAME, START_DATE,START_TIME, END_DATE, END_TIME, TYPE, COMMENT
-    };
+
 
 
 
@@ -53,6 +51,8 @@ private:
     void init();
 
     void displayTask(bool isNew,int row, Task * task);
+
+    bool config();
 };
 
 #endif // MAINWINDOW_H

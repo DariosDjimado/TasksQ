@@ -1,6 +1,10 @@
 #include "taskListController.h"
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QTextStream>
+
 
 TaskListController::TaskListController(
         TaskList *taskList,TaskTypeList * taskTypeList, QObject *parent) :
@@ -21,7 +25,10 @@ Task *TaskListController::createTask()
         task->setEndDate(QDate().currentDate());
         task->setStartTime(QTime().currentTime());
         task->setEndTime(QTime().currentTime());
+
         task->setType(m_taskTypeList->getDefaultTaskType());
+
+
         task->setComment(tr("No comment..."));
         task->setSaved(false);
     }
@@ -40,70 +47,76 @@ QList<Task *> TaskListController::selectByStartDate(QDate startDate)
 
 bool TaskListController::saveTasks()
 {
-    QFile db("DATA.TASKSQ");
-    if(!db.open(QFile::WriteOnly | QFile::Text)){
+    QFile data("tasks.json");
+    if(!data.open(QIODevice::WriteOnly)){
         logs(QDate().currentDate().toString("dd.MM.yyyy")+": cannot save data");
         return false;
     }else{
-        auto taskList=m_taskList->taskList();
-        QTextStream out(&db);
-        for(int i=0; i<taskList.size();i++){
-            auto currentaTask=taskList[i];
-            if(currentaTask->saved()==true){
-                out << currentaTask->name()<<"|";
-                out << currentaTask->startDate().toString("dd.MM.yyyy")<<"|";
-                out << currentaTask->startTime().toString("hh.mm.ss")<<"|";
-                out <<currentaTask->endDate().toString("dd.MM.yyyy")<<"|";
-                out <<currentaTask->endTime().toString("hh.mm.ss")<<"|";
-                out <<currentaTask->type()->name()<<"|";
-                out<<currentaTask->comment()<<endl;
-            }
-        }
-        db.flush();
-        db.close();
-        return true;
-    }
 
+        QJsonArray dataToSave;
+
+        auto taskList=m_taskList->taskList();
+        //if(currentaTask->saved()==true){
+        for(int i=0; i<taskList.size();i++)
+        {
+            auto currentaTask=taskList[i];
+
+            dataToSave.append({
+                                  QJsonValue({
+                                                 {"task_name",currentaTask->name()},
+                                                 {"start_date", currentaTask->startDate().toString("dd.MM.yyyy")},
+                                                 {"end_date", currentaTask->endDate().toString("dd.MM.yyyy")},
+
+                                                 {"start_time", currentaTask->startTime().toString()},
+                                                 {"end_time", currentaTask->endTime().toString()},
+
+                                                 {"type", currentaTask->type()->name()},
+                                                 {"comment", currentaTask->comment()}
+                                             })
+                              });
+
+        }
+
+     data.write(QJsonDocument(dataToSave).toJson());
+
+    return true;
+
+    }
 }
 
 bool TaskListController::loadTasks()
 {
-    QFile db("DATA.TASKSQ");
+    QFile data("tasks.json");
 
-    if(!db.open(QFile::ReadOnly | QFile::Text)){
+    if(!data.open(QFile::ReadOnly)){
         logs(QDate().currentDate().toString("dd.MM.yyyy")+": cannot load data");
         return false;
     }else{
-        QTextStream in(&db);
-        while(!in.atEnd()){
-            auto line=in.readLine();
-            auto listLine=line.split("|");
 
-            auto loadedTask=m_taskList->createTask();
+        QByteArray dataLoad=data.readAll();
+        QJsonDocument loadTasks(QJsonDocument::fromJson(dataLoad));
+        QJsonArray taskObject=loadTasks.array();
 
-            // name
-            loadedTask->setName(listLine[0]);
-            // dates
-            loadedTask->setStartDate(QDate::fromString(listLine[1],"dd.MM.yyyy"));
-            loadedTask->setEndDate(QDate::fromString(listLine[3],"dd.MM.yyyy"));
-            //times
-            loadedTask->setStartTime(QTime::fromString(listLine[2],"hh.mm.ss"));
-            loadedTask->setEndTime(QTime::fromString(listLine[4],"hh.mm.ss"));
-            // type
-            loadedTask->setType(m_taskTypeList->getTaskTypeByName(listLine[5]));
-            // comment
-            loadedTask->setComment(listLine[6]);
-            // flag as recorded (saved)
-            loadedTask->setSaved(true);
+        for(QJsonArray::Iterator it=taskObject.begin(); it!=taskObject.end();it++){
+            QJsonObject taskValues=it->toObject();
+
+            // create taskType
+           auto loadedTask=m_taskList->createTask();
+
+            loadedTask->setName(taskValues["task_name"].toString());
+            loadedTask->setStartDate(QDate::fromString(taskValues.take("start_date").toString("dd.MM.yyyy")));
+            loadedTask->setEndDate(QDate::fromString(taskValues.take("end_date").toString("dd.MM.yyyy")));
 
 
+            loadedTask->setStartTime(QTime::fromString(taskValues.take("start_time").toString()));
+            loadedTask->setEndTime(QTime::fromString(taskValues.take("end_time").toString()));
+
+            loadedTask->setComment(taskValues.take("comment").toString());
+
+            loadedTask->setType(m_taskTypeList->getTaskTypeByName(taskValues.take("type").toString()));
         }
-        db.flush();
-        db.close();
         return true;
     }
-
-
 }
 
 void TaskListController::logs(QString error)
@@ -132,4 +145,3 @@ Task *TaskListController::getTask(int position)
 {
     return m_taskList->getTask(position);
 }
-

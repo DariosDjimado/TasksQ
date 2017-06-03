@@ -8,14 +8,14 @@ class Reset : public QObject
     Q_OBJECT
 public:
     explicit Reset(QObject *parent = nullptr);
-    void doReset();
+    static bool doReset();
 
 signals:
 
 public slots:
 private:
-    void resetTypes();
-    void resetTasks();
+    static bool resetTypes();
+    static bool resetTasks();
 };
 
 #endif // RESET_H

@@ -9,8 +9,8 @@ class TaskTypeListController : public QObject
     Q_OBJECT
 public:
     explicit TaskTypeListController(TaskTypeList * taskTypeList, QObject *parent = nullptr);
-    void loadTaskTypes();
-    void saveTaskTypes();
+    bool loadTaskTypes();
+    bool saveTaskTypes();
     TaskType * getTaskTypeByPosition(int position);
     TaskType * getTaskTypeByName(QString name);
     int getSize();

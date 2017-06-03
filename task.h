@@ -45,6 +45,10 @@ public:
     TaskType *type() const;
     void setType(TaskType *type);
 
+    enum {
+        NAME, START_DATE,START_TIME, END_DATE, END_TIME, TYPE, COMMENT
+    };
+
 signals:
     void nameChanged();
     void startDateChanged();
