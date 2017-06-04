@@ -7,8 +7,8 @@ A simple task manager created with Qt
 - [ ] Add Documentation
 
 ## Doing
-- [ ] Undo
-- [ ] Redo
+- [ ] Stylize the edit page
+
 
 ## Done
 - [x] Add Tasks
@@ -18,3 +18,5 @@ A simple task manager created with Qt
 - [x] Edit Tasks
 - [x] Set Task Type
 - [x] Type Color Map
+- [x] Undo
+- [x] Redo
