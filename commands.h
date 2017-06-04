@@ -9,6 +9,7 @@ class AddTaskCommand: public QUndoCommand
 {
 public:
     AddTaskCommand(QTableWidget *table,QHash<int, Task *> *taskMap, TaskListController *taskListController, QUndoCommand *parent=0);
+    ~AddTaskCommand();
     void undo() override;
     void redo() override;
 private:
