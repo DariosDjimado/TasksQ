@@ -104,8 +104,8 @@ bool TaskListController::loadTasks()
            auto loadedTask=m_taskList->createTask();
 
             loadedTask->setName(taskValues["task_name"].toString());
-            loadedTask->setStartDate(QDate::fromString(taskValues.take("start_date").toString("dd.MM.yyyy")));
-            loadedTask->setEndDate(QDate::fromString(taskValues.take("end_date").toString("dd.MM.yyyy")));
+            loadedTask->setStartDate(QDate::fromString(taskValues.take("start_date").toString(),"dd.MM.yyyy"));
+            loadedTask->setEndDate(QDate::fromString(taskValues.take("end_date").toString(),"dd.MM.yyyy"));
 
 
             loadedTask->setStartTime(QTime::fromString(taskValues.take("start_time").toString()));

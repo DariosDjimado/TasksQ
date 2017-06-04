@@ -7,6 +7,9 @@
 #include <QMainWindow>
 #include <QHash>
 
+#include <QUndoCommand>
+#include <QUndoView>
+
 
 namespace Ui {
 class MainWindow;
@@ -27,9 +30,10 @@ public slots:
     void editTask();
     void saveTask();
     void discardTask();
+    void undo();
+    void redo();
 
 private slots:
-
 
 private:
     Ui::MainWindow *ui;
@@ -41,18 +45,18 @@ private:
     QHash<int, Task *> m_taskMap;
     QHash<TaskType *,int> m_typeMap;
 
+    QUndoStack * m_undoStack;
+    QUndoView *undoView;
 
 
 
-
-
+    void displayTask(bool isNew,int row, Task * task);
     void setupConnections();
     void setupConfig();
     void init();
-
-    void displayTask(bool isNew,int row, Task * task);
-
     bool config();
+
+
 };
 
 #endif // MAINWINDOW_H

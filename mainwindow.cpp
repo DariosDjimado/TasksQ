@@ -1,10 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "reset.h"
+#include "commands.h"
+
 #include <QPushButton>
 #include <QPropertyAnimation>
-
-
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QTextStream>
@@ -23,6 +23,7 @@ MainWindow::MainWindow(TaskListController * controller, TaskTypeListController *
 {
     Q_ASSERT(controller!=nullptr);
     Q_ASSERT(typeController!=nullptr);
+    m_undoStack=new QUndoStack(this);
     ui->setupUi(this);
 
     if(config()){
@@ -48,14 +49,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::createTask()
 {
-    auto task=m_controller->createTask();
-    if(task){
-
-        ui->tableWidget->insertRow(ui->tableWidget->rowCount());
-        auto rowCount=ui->tableWidget->rowCount()-1;
-
-        displayTask(true,rowCount,task);
-    }
+    QUndoCommand *ta=new AddTaskCommand(ui->tableWidget,&m_taskMap, m_controller);
+     m_undoStack->push(ta);
+    ui->actionUndo->setEnabled(m_undoStack->canUndo());
 }
 
 void MainWindow::deleteTask()
@@ -85,7 +81,10 @@ void MainWindow::editTask()
 
         if(task){
             ui->stackedWidget->setCurrentWidget(ui->editPage);
+
             ui->menuTasks->setEnabled(false);
+            ui->actionAdd->setEnabled(false);
+            ui->actionRemove->setEnabled(false);
 
             // name
             ui->editPageNameInput->setText(task->name());
@@ -136,6 +135,22 @@ void MainWindow::discardTask()
 {
     ui->stackedWidget->setCurrentWidget(ui->listPage);
     ui->menuTasks->setEnabled(true);
+    ui->actionAdd->setEnabled(true);
+    ui->actionRemove->setEnabled(true);
+}
+
+void MainWindow::undo()
+{
+    m_undoStack->undo();
+    ui->actionUndo->setEnabled(m_undoStack->canUndo());
+    ui->actionRedo->setEnabled(m_undoStack->canRedo());
+}
+
+void MainWindow::redo()
+{
+    m_undoStack->redo();
+    ui->actionUndo->setEnabled(m_undoStack->canUndo());
+    ui->actionRedo->setEnabled(m_undoStack->canRedo());
 }
 
 void MainWindow::setupConnections()
@@ -154,6 +169,17 @@ void MainWindow::setupConnections()
 
     connect(ui->buttonBox->button(QDialogButtonBox::Discard), &QPushButton::clicked,
                     this, &MainWindow::discardTask);
+
+
+    connect(ui->actionUndo, &QAction::triggered,
+            this, &MainWindow::undo);
+
+    connect(ui->actionRedo, &QAction::triggered,
+            this, &MainWindow::redo);
+
+    connect(ui->actionExit, &QAction::triggered,
+            this, &MainWindow::close);
+
 }
 
 void MainWindow::setupConfig()
@@ -207,9 +233,9 @@ void MainWindow::displayTask(bool isNew, int row, Task *task)
 
     ui->tableWidget->setItem(row,Task::NAME,new QTableWidgetItem(task->name()));
     ui->tableWidget->setItem(row,Task::START_DATE, new QTableWidgetItem(task->startDate().toString("dd.MM.yyyy")));
-    ui->tableWidget->setItem(row,Task::START_TIME, new QTableWidgetItem(task->startTime().toString("hh.mm.ss")));
+    ui->tableWidget->setItem(row,Task::START_TIME, new QTableWidgetItem(task->startTime().toString()));
     ui->tableWidget->setItem(row,Task::END_DATE, new QTableWidgetItem(task->endDate().toString("dd.MM.yyyy")));
-    ui->tableWidget->setItem(row,Task::END_TIME, new QTableWidgetItem(task->endTime().toString("hh.mm.ss")));
+    ui->tableWidget->setItem(row,Task::END_TIME, new QTableWidgetItem(task->endTime().toString()));
     ui->tableWidget->setItem(row,Task::TYPE,new QTableWidgetItem(task->type()->name()));
     ui->tableWidget->setItem(row,Task::COMMENT,new QTableWidgetItem(task->comment()));
 
@@ -222,8 +248,6 @@ void MainWindow::displayTask(bool isNew, int row, Task *task)
     if(isNew){
         m_taskMap.insert(row,task);
     }
-
-
 }
 
 bool MainWindow::config()

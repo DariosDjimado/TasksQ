@@ -289,6 +289,7 @@ QMenuBar::item:pressed {
     <addaction name="actionEdit"/>
     <addaction name="separator"/>
     <addaction name="actionRemove"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -517,6 +518,17 @@ QMenuBar::item:pressed {
    </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="toolTip">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
    </property>
   </action>
  </widget>
