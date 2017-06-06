@@ -3,12 +3,13 @@
 
 #include "taskListController.h"
 #include "tasktypelistcontroller.h"
-
+#include "diagram.h"
 #include <QMainWindow>
 #include <QHash>
 
 #include <QUndoCommand>
 #include <QUndoView>
+#include <QTableWidgetItem>
 
 
 namespace Ui {
@@ -32,6 +33,7 @@ public slots:
     void discardTask();
     void undo();
     void redo();
+    void drawDiagram();
 
 private slots:
 
@@ -42,21 +44,19 @@ private:
     TaskTypeListController * m_typeController;
 
 
-    QHash<int, Task *> m_taskMap;
+    QHash<QTableWidgetItem *, Task *> m_taskMap;
     QHash<TaskType *,int> m_typeMap;
 
     QUndoStack * m_undoStack;
     QUndoView *undoView;
 
+    Diagram * m_diagram;
 
-
-    void displayTask(bool isNew,int row, Task * task);
+    void displayTask(int row, Task * task);
     void setupConnections();
     void setupConfig();
     void init();
     bool config();
-
-
 };
 
 #endif // MAINWINDOW_H

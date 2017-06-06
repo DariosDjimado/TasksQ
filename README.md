@@ -3,11 +3,12 @@ A simple task manager created with Qt
 
 
 ## TO DO
-- [ ] Show Task Diagram
 - [ ] Add Documentation
+- [ ] Load the tasks from .ics .ical
 
 ## Doing
 - [ ] Stylize the edit page
+- [ ] Show Task Diagram
 
 
 ## Done
@@ -20,3 +21,4 @@ A simple task manager created with Qt
 - [x] Type Color Map
 - [x] Undo
 - [x] Redo
+

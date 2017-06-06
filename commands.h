@@ -5,20 +5,44 @@
 #include <QTableWidget>
 #include <QHash>
 
-class AddTaskCommand: public QUndoCommand
+class BaseCommand:public QUndoCommand
 {
 public:
-    AddTaskCommand(QTableWidget *table,QHash<int, Task *> *taskMap, TaskListController *taskListController, QUndoCommand *parent=0);
+    BaseCommand(QTableWidget *table,QHash<QTableWidgetItem *, Task *> *taskMap, TaskListController *taskListController, QUndoCommand *parent=0);
+
+protected:
+    QTableWidget *m_table;
+    QHash<QTableWidgetItem *, Task *> * m_taskMap;
+    TaskListController * m_taskListController;
+    void displayTask(int row, Task *task);
+};
+
+class AddTaskCommand: public BaseCommand
+{
+public:
+    AddTaskCommand(QTableWidget *table,QHash<QTableWidgetItem *, Task *> *taskMap, TaskListController *taskListController, QUndoCommand *parent=0);
     ~AddTaskCommand();
     void undo() override;
     void redo() override;
 private:
-    TaskListController * m_taskListController;
     Task * m_task;
-    QTableWidget *m_table;
-    QHash<int, Task *> * m_taskMap;
-    QHash<Task *, int> m_localTaskMap;
-    void displayTask(bool isNew, int row, Task *task);
+    QHash<Task *, QTableWidgetItem *> m_localTaskMap;
+};
+
+
+class DeleteCommand: public BaseCommand
+{
+public:
+    DeleteCommand(QTableWidget *table,QHash<QTableWidgetItem *, Task *> *taskMap, TaskListController *taskListController, QUndoCommand *parent=0);
+    ~DeleteCommand();
+    void undo() override;
+    void redo() override;
+
+
+private:
+    Task * m_task;
+    int m_row;
+
 };
 
 #endif // COMMANDS_H

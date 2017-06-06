@@ -79,7 +79,8 @@ QMenuBar::item:selected { /* when selected using mouse or keyboard */
 
 QMenuBar::item:pressed {
     background: #888888;
-}</string>
+}
+</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="styleSheet">
@@ -100,6 +101,9 @@ QMenuBar::item:pressed {
     </property>
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -110,6 +114,9 @@ QMenuBar::item:pressed {
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
          <widget class="QTableWidget" name="tableWidget">
+          <property name="mouseTracking">
+           <bool>false</bool>
+          </property>
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
           </property>
@@ -166,6 +173,9 @@ QMenuBar::item:pressed {
         </item>
         <item row="1" column="0">
          <widget class="QGraphicsView" name="graphicsView">
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAsNeeded</enum>
+          </property>
           <property name="sceneRect">
            <rectf>
             <x>0.000000000000000</x>
@@ -180,9 +190,136 @@ QMenuBar::item:pressed {
       </widget>
       <widget class="QWidget" name="editPage">
        <property name="styleSheet">
-        <string notr="true"/>
+        <string notr="true">QLabel{
+	height: 20px;
+	line-height: 20px;
+	font-size: 16px;
+	color: #607D8B ;
+	font-weight: bold;
+}
+
+QLineEdit, QDateTimeEdit, QComboBox {
+	height: 24px;
+	font-size: 15px;
+	line-height: 20px;
+	border: 1px solid gray;
+}
+
+QDateTimeEdit{
+    padding: 1px 18px 1px 3px;
+    min-width: 6em;
+}
+
+QDateTimeEdit::up-button{
+	subcontrol-origin: border;
+    subcontrol-position: top right; /* position at the top right corner */
+    width: 20px;
+    border-width: 1px;
+	border: 1px solid gray;
+	background-color: #90CAF9;
+}
+
+QDateTimeEdit::up-button:hover, QDateTimeEdit::down-button:hover{
+	background-color:  #2196F3;
+}
+
+QDateTimeEdit::down-button{
+	subcontrol-origin: border;
+    subcontrol-position: bottom right; /* position at the top right corner */
+    width: 20px;
+    border-width: 1px;
+	background-color: #90CAF9;
+	border-right: 1px solid gray;
+	border-bottom: 1px solid gray;
+	border-left: 1px solid gray;
+}
+
+QDateTimeEdit::up-arrow{
+	image:url(:/icons/icons/ic_keyboard_arrow_up_black_24dp_1x.png);
+	width: 12px;
+    height: 12px;
+}
+
+QDateTimeEdit::down-arrow{
+	image: url(:/icons/icons/ic_keyboard_arrow_down_black_24dp_1x.png);
+	width: 12px;
+    height: 12px;
+}
+
+QComboBox {
+    border: 1px solid gray;
+    padding: 1px 18px 1px 3px;
+    min-width: 6em;
+}
+
+QComboBox:editable {
+    background: white;
+}
+
+QComboBox:!editable, QComboBox::drop-down:editable {
+     background: #2196F3;
+}
+
+
+QComboBox:!editable:on, QComboBox::drop-down:editable:on {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #D3D3D3, stop: 0.4 #D8D8D8,
+                                stop: 0.5 #DDDDDD, stop: 1.0 #E1E1E1);
+}
+
+QComboBox:on {
+    padding-top: 3px;
+    padding-left: 4px;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: darkgray;
+    border-left-style: solid;
+}
+
+QComboBox::down-arrow {
+    image: url(:/icons/icons/ic_keyboard_arrow_down_black_24dp_1x.png);
+}
+
+QComboBox::down-arrow:on { /* shift the arrow when popup is open */
+    top: 1px;
+    left: 1px;
+}
+
+/* Buttons */
+
+QPushButton{
+	font-size: 16px;
+	color: white;
+	background-color: #2196F3;
+	border: 1px solid gray;
+	padding: 5px 10px;
+
+}
+
+QDialogButtonBox { 
+	dialogbuttonbox-buttons-have-icons: 1; 
+	dialog-save-icon: url(:/icons/icons/ic_save_black_24dp_1x.png);
+	dialog-cancel-icon: url(:/icons/icons/ic_cancel_black_24px.svg);
+}</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
+        <property name="leftMargin">
+         <number>100</number>
+        </property>
+        <property name="topMargin">
+         <number>9</number>
+        </property>
+        <property name="rightMargin">
+         <number>100</number>
+        </property>
+        <property name="bottomMargin">
+         <number>9</number>
+        </property>
         <item row="0" column="0">
          <widget class="QLabel" name="label">
           <property name="text">
@@ -206,8 +343,23 @@ QMenuBar::item:pressed {
         </item>
         <item row="6" column="4">
          <widget class="QDialogButtonBox" name="buttonBox">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
           <property name="standardButtons">
-           <set>QDialogButtonBox::Discard|QDialogButtonBox::Save</set>
+           <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
           </property>
           <property name="centerButtons">
            <bool>false</bool>
@@ -218,7 +370,11 @@ QMenuBar::item:pressed {
          <widget class="QDateEdit" name="editPageEndDateInput"/>
         </item>
         <item row="1" column="4">
-         <widget class="QTimeEdit" name="editPageStartTimeInput"/>
+         <widget class="QTimeEdit" name="editPageStartTimeInput">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+         </widget>
         </item>
         <item row="1" column="3">
          <widget class="QLabel" name="label_3">
@@ -228,10 +384,18 @@ QMenuBar::item:pressed {
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QDateEdit" name="editPageStartDateInput"/>
+         <widget class="QDateEdit" name="editPageStartDateInput">
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::UpDownArrows</enum>
+          </property>
+         </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QLineEdit" name="editPageNameInput"/>
+         <widget class="QLineEdit" name="editPageNameInput">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+         </widget>
         </item>
         <item row="3" column="4">
          <widget class="QTimeEdit" name="editPageEndTimeInput"/>
@@ -367,6 +531,7 @@ QMenuBar::item:pressed {
    <addaction name="actionAdd"/>
    <addaction name="actionEdit"/>
    <addaction name="actionRemove"/>
+   <addaction name="actionGraphic"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionAdd">
@@ -412,7 +577,7 @@ QMenuBar::item:pressed {
     <string>Remove</string>
    </property>
    <property name="toolTip">
-    <string>Rem</string>
+    <string>Remove</string>
    </property>
    <property name="font">
     <font>
@@ -529,6 +694,21 @@ QMenuBar::item:pressed {
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionGraphic">
+   <property name="icon">
+    <iconset resource="iconsressources.qrc">
+     <normaloff>:/icons/icons/ic_timeline_black_24dp_2x.png</normaloff>:/icons/icons/ic_timeline_black_24dp_2x.png</iconset>
+   </property>
+   <property name="text">
+    <string>Graphic</string>
+   </property>
+   <property name="toolTip">
+    <string>Graphic</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
    </property>
   </action>
  </widget>

@@ -9,5 +9,10 @@
         <file>icons/ic_sort_black_24dp_1x.png</file>
         <file>icons/ic_undo_black_24dp_1x.png</file>
         <file>icons/ic_update_black_24dp_1x.png</file>
+        <file>icons/ic_keyboard_arrow_down_black_24dp_1x.png</file>
+        <file>icons/ic_keyboard_arrow_up_black_24dp_1x.png</file>
+        <file>icons/ic_save_black_24dp_1x.png</file>
+        <file>icons/ic_cancel_black_24px.svg</file>
+        <file>icons/ic_timeline_black_24dp_2x.png</file>
     </qresource>
 </RCC>

@@ -33,7 +33,8 @@ SOURCES += \
     tasktypelist.cpp \
     tasktypelistcontroller.cpp \
     reset.cpp \
-    commands.cpp
+    commands.cpp \
+    diagram.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -44,7 +45,8 @@ HEADERS += \
     tasktypelist.h \
     tasktypelistcontroller.h \
     reset.h \
-    commands.h
+    commands.h \
+    diagram.h
 
 FORMS += \
         mainwindow.ui

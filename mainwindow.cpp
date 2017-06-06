@@ -26,10 +26,11 @@ MainWindow::MainWindow(TaskListController * controller, TaskTypeListController *
     m_undoStack=new QUndoStack(this);
     ui->setupUi(this);
 
+    m_diagram=new Diagram(ui->graphicsView);
+
     if(config()){
         qWarning("okok");
-    }
-        ;
+    };  
 
     // initialize the session
     init();
@@ -51,33 +52,24 @@ void MainWindow::createTask()
 {
     QUndoCommand *ta=new AddTaskCommand(ui->tableWidget,&m_taskMap, m_controller);
      m_undoStack->push(ta);
+     // TODO control
     ui->actionUndo->setEnabled(m_undoStack->canUndo());
 }
 
 void MainWindow::deleteTask()
 {
-    auto row=ui->tableWidget->currentRow();
-    if(row>=0){
-        auto task=m_taskMap.value(row);
+    QUndoCommand *deleteCommand=new DeleteCommand(ui->tableWidget, &m_taskMap, m_controller);
+    m_undoStack->push(deleteCommand);
+    // TODO control
+    ui->actionUndo->setEnabled(m_undoStack->canUndo());
 
-        if(task){
-            if(m_controller->deleteTask(task)){
-                m_taskMap.remove(row);
-                ui->tableWidget->removeRow(row);
-
-
-                //*******
-                m_controller->saveTasks();
-            }
-        }
-    }
 }
 
 void MainWindow::editTask()
 {
-    auto item=ui->tableWidget->currentRow();
-    if(item>=0){
-        auto task=m_taskMap.value(item);
+    auto row=ui->tableWidget->currentRow();
+    if(row>=0){
+        auto task=m_taskMap.value(ui->tableWidget->item(row,Task::NAME));
 
         if(task){
             ui->stackedWidget->setCurrentWidget(ui->editPage);
@@ -104,7 +96,7 @@ void MainWindow::saveTask()
 {
     auto row=ui->tableWidget->currentRow();
         if(row>=0){
-            auto task=m_taskMap.value(row);
+            auto task=m_taskMap.value(ui->tableWidget->item(row,Task::NAME));
 
             if(task){
                 task->setName(ui->editPageNameInput->text());
@@ -120,7 +112,7 @@ void MainWindow::saveTask()
 
                 task->setSaved(true);
 
-                displayTask(false,row,task);
+                displayTask(row,task);
 
                 //********
                  m_controller->saveTasks();
@@ -153,10 +145,25 @@ void MainWindow::redo()
     ui->actionRedo->setEnabled(m_undoStack->canRedo());
 }
 
+void MainWindow::drawDiagram()
+{
+    auto row=ui->tableWidget->currentRow();
+    if(row>=0){
+        auto task=m_taskMap.value(ui->tableWidget->item(row,Task::NAME));
+        if(task){
+            auto tasks=m_controller->selectByStartDate(task->startDate());
+            m_diagram->drawDiagramForTasks(task,tasks);
+        }
+    }
+}
+
 void MainWindow::setupConnections()
 {
-    connect(ui->actionAdd, SIGNAL(triggered(bool)),
-            this,SLOT(createTask()));
+    connect(ui->tableWidget,SIGNAL(itemSelectionChanged()),
+            this, SLOT(drawDiagram()));
+
+    connect(ui->actionAdd, &QAction::triggered,
+            this, &MainWindow::createTask);
 
     connect(ui->actionRemove, &QAction::triggered,
             this, &MainWindow::deleteTask);
@@ -167,7 +174,7 @@ void MainWindow::setupConnections()
     connect(ui->buttonBox->button(QDialogButtonBox::Save), &QPushButton::clicked,
             this, &MainWindow::saveTask);
 
-    connect(ui->buttonBox->button(QDialogButtonBox::Discard), &QPushButton::clicked,
+    connect(ui->buttonBox->button(QDialogButtonBox::Cancel), &QPushButton::clicked,
                     this, &MainWindow::discardTask);
 
 
@@ -180,26 +187,17 @@ void MainWindow::setupConnections()
     connect(ui->actionExit, &QAction::triggered,
             this, &MainWindow::close);
 
+
+    connect(ui->actionGraphic, &QAction::triggered,
+            this, &MainWindow::drawDiagram);
+
 }
 
 void MainWindow::setupConfig()
 {
-
     QStringList titles;
     titles<<"Task name"<<"Start Date"<<"Start Time"<<"End Date"<<"End Time"<<"Type"<<"Comment";
     ui->tableWidget->setHorizontalHeaderLabels(titles);
-
-
-
-    QGraphicsScene *scene=new QGraphicsScene(0,0,300,300, ui->graphicsView);
-    scene->setBackgroundBrush(Qt::yellow);
-
-    QPen linePen(Qt::blue);
-    linePen.setWidth(5);
-
-    scene->addLine(-50,-50,100,-50,linePen);
-
-    ui->graphicsView->setScene(scene);
 }
 
 void MainWindow::init()
@@ -215,9 +213,11 @@ void MainWindow::init()
 
         auto task=m_controller->getTask(i);
         ui->tableWidget->insertRow(ui->tableWidget->rowCount());
+
+
         auto rowCount=ui->tableWidget->rowCount()-1;
 
-        displayTask(true,rowCount,task);
+        displayTask(rowCount,task);
     }
 
     // Types combo box
@@ -228,9 +228,8 @@ void MainWindow::init()
     }
 }
 
-void MainWindow::displayTask(bool isNew, int row, Task *task)
+void MainWindow::displayTask(int row, Task *task)
 {
-
     ui->tableWidget->setItem(row,Task::NAME,new QTableWidgetItem(task->name()));
     ui->tableWidget->setItem(row,Task::START_DATE, new QTableWidgetItem(task->startDate().toString("dd.MM.yyyy")));
     ui->tableWidget->setItem(row,Task::START_TIME, new QTableWidgetItem(task->startTime().toString()));
@@ -245,9 +244,8 @@ void MainWindow::displayTask(bool isNew, int row, Task *task)
 
     }
 
-    if(isNew){
-        m_taskMap.insert(row,task);
-    }
+    m_taskMap.insert(ui->tableWidget->item(row,Task::NAME),task);
+
 }
 
 bool MainWindow::config()

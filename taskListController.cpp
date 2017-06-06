@@ -56,24 +56,24 @@ bool TaskListController::saveTasks()
         QJsonArray dataToSave;
 
         auto taskList=m_taskList->taskList();
-        //if(currentaTask->saved()==true){
         for(int i=0; i<taskList.size();i++)
         {
             auto currentaTask=taskList[i];
+            if(currentaTask->saved()==true){
+                dataToSave.append({
+                                      QJsonValue({
+                                                     {"task_name",currentaTask->name()},
+                                                     {"start_date", currentaTask->startDate().toString("dd.MM.yyyy")},
+                                                     {"end_date", currentaTask->endDate().toString("dd.MM.yyyy")},
 
-            dataToSave.append({
-                                  QJsonValue({
-                                                 {"task_name",currentaTask->name()},
-                                                 {"start_date", currentaTask->startDate().toString("dd.MM.yyyy")},
-                                                 {"end_date", currentaTask->endDate().toString("dd.MM.yyyy")},
+                                                     {"start_time", currentaTask->startTime().toString()},
+                                                     {"end_time", currentaTask->endTime().toString()},
 
-                                                 {"start_time", currentaTask->startTime().toString()},
-                                                 {"end_time", currentaTask->endTime().toString()},
-
-                                                 {"type", currentaTask->type()->name()},
-                                                 {"comment", currentaTask->comment()}
-                                             })
-                              });
+                                                     {"type", currentaTask->type()->name()},
+                                                     {"comment", currentaTask->comment()}
+                                                 })
+                                  });
+            }
 
         }
 
@@ -114,6 +114,8 @@ bool TaskListController::loadTasks()
             loadedTask->setComment(taskValues.take("comment").toString());
 
             loadedTask->setType(m_taskTypeList->getTaskTypeByName(taskValues.take("type").toString()));
+
+            loadedTask->setSaved(true);
         }
         return true;
     }
